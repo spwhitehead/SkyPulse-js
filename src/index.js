@@ -1,14 +1,16 @@
 "use strict";
 
+// ('#login').modal('show');
+
 const zipStringElement = document.getElementById("zipcode");
-const apiKey = process.env.API_KEY
+const apiKey = process.env.API_KEY;
 
 const getAllWeather = async () => {
     const zipString = zipStringElement.value;
     let coordinates = await getCoordinates(zipString);
-    getCurrentWeather(...coordinates);
-    getWeatherForecast(...coordinates);
-    getWeatherAlerts(getState(zipString));
+    await getCurrentWeather(...coordinates);
+    await getWeatherForecast(...coordinates);
+    await getWeatherAlerts(getState(zipString));
 };
 
 async function getCoordinates(zipString) {
@@ -33,7 +35,7 @@ async function getCoordinates(zipString) {
         const latitude = data["results"][0]["geometry"]["location"]["lat"];
         const longitude = data["results"][0]["geometry"]["location"]["lng"];
         return[latitude, longitude];
-      })
+      });
       return latLong;
 };
 
@@ -262,31 +264,42 @@ const getWeatherAlerts = async (state) => {
         let weatherAlert = await alerts[i]["properties"];
         wxAlerts.push(weatherAlert);
     }
-    if (wxAlerts.length === 0) {
-        let alertArea = document.getElementById("areaDesc");
-        alertArea.innerHTML = "<p>" + "There are no weather alerts in your area at this time." + "</p>";
-        return;
-    }
-
-    // document.querySelector('#alerts').innerHTML = '<section id="areaDesc"></section>' + '<section id="headline"></section>' + '<section id="whatToDo"></section>' + '<section id="severity"></section>';
 
     let alertBox = document.getElementById("alerts");
+    alertBox.innerHTML = "<h3>" + "Current Weather Alerts" + "</h3>";
+
+    if (wxAlerts.length === 0) {
+        let noAlerts = document.createElement("div")
+        noAlerts.setAttribute("class", "noAlerts");
+        noAlerts.innerHTML = "<p>" + "There are no weather alerts in your area at this time." + "</p>";
+        alertBox.appendChild(noAlerts);
+        return;
+    }
+    // document.querySelector('#alerts').innerHTML = '<section id="areaDesc"></section>' + '<section id="headline"></section>' + '<section id="whatToDo"></section>' + '<section id="severity"></section>';
     for (let i = 0; i < wxAlerts.length; i++) {
         let alertDiv = document.createElement("div");
         alertDiv.setAttribute("class", "alert");
+
         let alertArea = document.createElement("section");
         alertArea.setAttribute("class", "alertArea");
         alertArea.innerHTML += "<p>" + "Alert Area: " + wxAlerts[i]["areaDesc"] + "</p>";
+        
         let alertHeadline = document.createElement("section");
         alertHeadline.setAttribute("class", "alertHeadline");
         alertHeadline.innerHTML += "<p>" + "Alert Description: " + wxAlerts[i]["headline"] + "</p>";
+        
         let whatToDo = document.createElement("section");
         whatToDo.setAttribute("class", "whatToDo");
         whatToDo.innerHTML += "<p>" + "What To Do: " + wxAlerts[i]["instruction"] + "</p>";
+        
         let severity = document.createElement("section");
         severity.setAttribute("class", "severity");
         severity.innerHTML += "<p>" + "Severity: " + wxAlerts[i]["severity"] + "</p>";
-        alertDiv.appendChild(alertArea, alertHeadline, whatToDo, severity);
+
+        alertDiv.appendChild(alertArea);
+        alertDiv.appendChild(alertHeadline);
+        alertDiv.appendChild(whatToDo);
+        alertDiv.appendChild(severity);
         alertBox.appendChild(alertDiv);
     }
 };
@@ -294,7 +307,6 @@ const getWeatherAlerts = async (state) => {
 const getWeatherForecast = async (latitude, longitude) => {
     const response = await fetch(`https://api.weather.gov/points/${latitude},${longitude}`);
     const data = await response.json();
-    // let city = await fetch(data["relativeLocation"]["properties"]["city"]);
     let forecastUrl = await fetch(data["properties"]["forecastHourly"]);
     let forecastProperties = await forecastUrl.json();
     let forecastHourly = [];
@@ -305,7 +317,7 @@ const getWeatherForecast = async (latitude, longitude) => {
     document.querySelector('#forecastTemp').innerHTML = '<canvas id="forecastTempChart" ></canvas>';
     const ctx = document.getElementById('forecastTempChart');
     let forecastTempChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: ['Now', '1 hr', '2 hr', '3 hr', '4 hr', '5 hr', '6 hr', '7 hr', '8 hr', '9 hr', '10 hr', '11 hr', '12 hr', '13 hr', '14 hr', '15 hr', '16 hr', '17 hr', '18 hr', '19 hr', '20 hr', '21 hr', '22 hr', '23 hr', '24 hr'],
             datasets: [{
@@ -315,6 +327,7 @@ const getWeatherForecast = async (latitude, longitude) => {
             }]
         },
         options: {
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true
@@ -326,40 +339,6 @@ const getWeatherForecast = async (latitude, longitude) => {
 
 document.getElementById("getWeather").addEventListener("click", getAllWeather);
 
-
-
-
-
-
-// const getWeather = (latitude, longitude) => {
-//     let weatherJSON = `https://api.weather.gov/points/${latitude},${longitude}`;
-//     return weatherJSON
-//   };
-
-
-
-// document.addEventListener("DOMContentLoaded", async () => {
-//     const response = await fetch("https://swapi.dev/api/people");
-//     const data = await response.json();
-//     const people = data.results;
-
-//     const maleCharacters = people.filter((person) => person.gender === "male");
-//     const femaleCharacters = people.filter((person) => person.gender === "female");
-
-//     const male = maleCharacters.map((m) => m.name);
-//     const female = femaleCharacters.map((f) => f.name);
-
-//     addCharacters("male", male);
-//     addCharacters("female", female);
+// document.getElementById("getWeather").addEventListener("click", async () => {
+//     await getAllWeather();
 // });
-
-// const addCharacters = (gender, names) => {
-//     for (let i = 0; i < names.length; i++) {
-//         const character = document.createElement("li");
-//         character.innerHTML = names[i];
-//         character.className = "dropdown-item";
-
-//         const dropdown = document.querySelector(`#${gender} ul`);
-//         dropdown.appendChild(character); 
-//     }
-// };
