@@ -95,3 +95,15 @@ address {
     text-indent: 20px;
 }
 
+.contact-form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 5px;
+    padding: 5px;
+}
+
+.contact-form-group .form-check-input {
+    flex-direction: row;
+    margin: 5px;
+}
