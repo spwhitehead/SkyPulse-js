@@ -27,32 +27,35 @@
         <section class="dashboard" id="weather">
             <div class="cards">
                 <h2>Weather Dashboard</h2>
+                <section class="inputs">
+                    <label for="zipcode">Enter 5-digit Zipcode:</label>
+                    <input type="number" id="zipcode" class="number-input">
+                </section>
                 <button type="button" id="getWeather">Get Weather</button>
                 <div class="card-container">
-                    <div class="weather-info">
+                    <div class="weather-info" id="currentWeather">
                         <h3>Current Weather</h3>
                         <section id="temp"></section>
                         <section id="windDirection"></section>
                         <section id="windSpeed"></section>
                         <section id="relativeHumidity"></section>
-                        <canvas id="currentWeather"></canvas>
+                        <section id="shortForecast"></section>
                     </div>
                 </div>
                 <div class="card-container">
-                    <div class="weather-info">
+                    <div class="weather-info" id="alerts">
                         <h3>Current Weather Alerts</h3>
-                        <section id="areaDesc"></section>
-                        <section id="description"></section>
-                        <section id="certainty"></section>
-                        <section id=""></section>
-                        <section id="areaDesc"></section>
-                        <section id="areaDesc"></section>
-                        <section id="areaDesc"></section>
+                        <!-- <section id="headline"></section>
+                        <section id="whatToDo"></section>
+                        <section id="severity"></section> -->
                     </div>
                 </div>
                 <div class="card-container">
                     <div class="weather-info">
                         <h3>24-Hour Forecast</h3>
+                        <section class="card-body" id="forecastTemp">
+                            <!-- <canvas id="forecastTempChart" width="100vw" height="70vh" ></canvas> -->
+                        </section>
                     </div>
                 </div>
             </div>
@@ -61,6 +64,7 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="javascript/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="dist/bundle.js"></script>
 </body>
 </html>

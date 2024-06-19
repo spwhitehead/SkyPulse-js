@@ -1,48 +1,47 @@
-// const ctx = document.getElementById('currentWeather');
-
-//   new Chart(ctx, {
-//     type: 'bar',
-//     data: {
-//       labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-//       datasets: [{
-//         label: '# of Votes',
-//         data: [12, 19, 3, 5, 2, 3],
-//         borderWidth: 1
-//       }]
-//     },
-//     options: {
-//       scales: {
-//         y: {
-//           beginAtZero: true
-//         }
-//       }
-//     }
-//   });
 "use strict";
 
-let zipString = "84765";
+const zipStringElement = document.getElementById("zipcode");
+const apiKey = process.env.API_KEY
 
-const getAllWeather = () => {
-    getCurrentWeather(...getLatLong());
-    getWeatherForecast(...getLatLong());
+const getAllWeather = async () => {
+    const zipString = zipStringElement.value;
+    let coordinates = await getCoordinates(zipString);
+    getCurrentWeather(...coordinates);
+    getWeatherForecast(...coordinates);
     getWeatherAlerts(getState(zipString));
 };
 
-function getCoordinates(address){
-    fetch("https://maps.googleapis.com/maps/api/geocode/json?address="+address+'&key='+API_KEY)
+async function getCoordinates(zipString) {
+    /* Ensure param is a string to prevent unpredictable parsing results */
+    if (typeof zipString !== 'string') {
+        console.error('Must pass the zipcode as a string.');
+        return;
+    }
+  
+    /* Ensure we have exactly 5 characters to parse */
+    if (zipString.length !== 5) {
+        console.error('Must pass a 5-digit zipcode.');
+        return;
+    }
+  
+    /* Ensure we don't parse strings starting with 0 as octal values */
+    const zipcode = parseInt(zipString, 10);
+
+    let latLong = await fetch("https://maps.googleapis.com/maps/api/geocode/json?address=" + zipcode + '&key=' + apiKey)
       .then(response => response.json())
       .then(data => {
-        const latitude = data.results.geometry.location.lat;
-        const longitude = data.results.geometry.location.lng;
+        const latitude = data["results"][0]["geometry"]["location"]["lat"];
+        const longitude = data["results"][0]["geometry"]["location"]["lng"];
         return[latitude, longitude];
       })
+      return latLong;
 };
 
-const getLatLong = () => {
-    let latitude = 37.104622;
-    let longitude = -113.583043;
-    return [latitude, longitude];
-};
+// const getLatLong = () => {
+//     let latitude = 37.104622;
+//     let longitude = -113.583043;
+//     return [latitude, longitude];
+// };
 
 function getState(zipString) {
 
@@ -242,23 +241,54 @@ const getCurrentWeather = async (latitude, longitude) => {
         // for (period of forecastHourly) {
         //     twelveHourForecast.push(period);
         // }
-        return currentWeather;
+        document.getElementById("temp").innerHTML = "";
+        document.getElementById("windDirection").innerHTML = "";
+        document.getElementById("windSpeed").innerHTML = "";
+        document.getElementById("relativeHumidity").innerHTML = "";
+        document.getElementById("shortForecast").innerHTML = "";
+        let currentTemp = document.getElementById("temp").innerHTML += "<p>" + currentWeather["temperature"] + " " + currentWeather["temperatureUnit"] + "</p>";
+        let currentWindDirection = document.getElementById("windDirection").innerHTML += "<p>" + "Winds from the: " + currentWeather["windDirection"] + "</p>";
+        let currentWindSpeed = document.getElementById("windSpeed").innerHTML += "<p>" + "Windspeed: " + currentWeather["windSpeed"];
+        let currentHumidity = document.getElementById("relativeHumidity").innerHTML += "<p>" + "Humidity: " + currentWeather["relativeHumidity"]["value"] + "%" + "</p>";
+        let currentShortForecast = document.getElementById("shortForecast").innerHTML += "<p>" + "Forecast: " + currentWeather["shortForecast"];
 };
 
 const getWeatherAlerts = async (state) => {
     const response = await fetch(`https://api.weather.gov/alerts/active/area/${state}`);
     const data = await response.json();
-    const alerts = await data["features"];
+    const alerts = data["features"];
     let wxAlerts = [];
     for (let i=0; i < alerts.length; i++) {
         let weatherAlert = await alerts[i]["properties"];
         wxAlerts.push(weatherAlert);
     }
-    return wxAlerts;
-};
+    if (wxAlerts.length === 0) {
+        let alertArea = document.getElementById("areaDesc");
+        alertArea.innerHTML = "<p>" + "There are no weather alerts in your area at this time." + "</p>";
+        return;
+    }
 
-const parseWeatherAlerts = (wxAlerts) => {
-    
+    // document.querySelector('#alerts').innerHTML = '<section id="areaDesc"></section>' + '<section id="headline"></section>' + '<section id="whatToDo"></section>' + '<section id="severity"></section>';
+
+    let alertBox = document.getElementById("alerts");
+    for (let i = 0; i < wxAlerts.length; i++) {
+        let alertDiv = document.createElement("div");
+        alertDiv.setAttribute("class", "alert");
+        let alertArea = document.createElement("section");
+        alertArea.setAttribute("class", "alertArea");
+        alertArea.innerHTML += "<p>" + "Alert Area: " + wxAlerts[i]["areaDesc"] + "</p>";
+        let alertHeadline = document.createElement("section");
+        alertHeadline.setAttribute("class", "alertHeadline");
+        alertHeadline.innerHTML += "<p>" + "Alert Description: " + wxAlerts[i]["headline"] + "</p>";
+        let whatToDo = document.createElement("section");
+        whatToDo.setAttribute("class", "whatToDo");
+        whatToDo.innerHTML += "<p>" + "What To Do: " + wxAlerts[i]["instruction"] + "</p>";
+        let severity = document.createElement("section");
+        severity.setAttribute("class", "severity");
+        severity.innerHTML += "<p>" + "Severity: " + wxAlerts[i]["severity"] + "</p>";
+        alertDiv.appendChild(alertArea, alertHeadline, whatToDo, severity);
+        alertBox.appendChild(alertDiv);
+    }
 };
 
 const getWeatherForecast = async (latitude, longitude) => {
@@ -268,15 +298,33 @@ const getWeatherForecast = async (latitude, longitude) => {
     let forecastUrl = await fetch(data["properties"]["forecastHourly"]);
     let forecastProperties = await forecastUrl.json();
     let forecastHourly = [];
-    for (let i=0; i < 12; i++) {
+    for (let i=0; i < 25; i++) {
         let currentWeather = await forecastProperties["properties"]["periods"][i];
-        forecastHourly.push(currentWeather);
+        forecastHourly.push(currentWeather["temperature"]);
     }
-    return forecastHourly;
+    document.querySelector('#forecastTemp').innerHTML = '<canvas id="forecastTempChart" ></canvas>';
+    const ctx = document.getElementById('forecastTempChart');
+    let forecastTempChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Now', '1 hr', '2 hr', '3 hr', '4 hr', '5 hr', '6 hr', '7 hr', '8 hr', '9 hr', '10 hr', '11 hr', '12 hr', '13 hr', '14 hr', '15 hr', '16 hr', '17 hr', '18 hr', '19 hr', '20 hr', '21 hr', '22 hr', '23 hr', '24 hr'],
+            datasets: [{
+                label: "Tempurature",
+                data: forecastHourly,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 };
 
 document.getElementById("getWeather").addEventListener("click", getAllWeather);
-
 
 
 

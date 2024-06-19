@@ -11,6 +11,10 @@ body, html {
     border-radius: 10px;
 }
 
+.inputs {
+    padding: 10px;
+}
+
 .cards {
     text-align: center;
     line-height: 1.6;
@@ -32,20 +36,34 @@ body, html {
 
 .weather-info {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: column;
     flex-direction: column;
     align-items: center;
-    width: 30vw;
+    height: auto;
+    width: 100vw;
     background-color: #505050;
     border-radius: 15px;
     margin: 10px;
     padding: 10px;
-    transition: 0.3s;
 }
 
 .weather-info h3 {
     color: rgba(0, 144, 255, 1);
+    text-align: center;
 }
+
+.card-body canvas {
+    display: flex;
+    flex-direction: column;
+    width: 80vw;
+    height: auto;
+}
+
+.alert {
+    background-color: rgb(72, 3, 108);
+    padding: 10px;
+}
+
 
 /* .weather-info h3 a {
     color: rgba(0, 144, 255, 1);
@@ -72,7 +90,9 @@ address {
 }
 
 .offcanvas-body {
-    justify-content: space-between;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .faqs {
