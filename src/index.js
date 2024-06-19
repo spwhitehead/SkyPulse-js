@@ -1,7 +1,5 @@
 "use strict";
 
-// ('#login').modal('show');
-
 const zipStringElement = document.getElementById("zipcode");
 const apiKey = process.env.API_KEY;
 
@@ -38,13 +36,6 @@ async function getCoordinates(zipString) {
       });
       return latLong;
 };
-
-// const getLatLong = () => {
-//     let latitude = 37.104622;
-//     let longitude = -113.583043;
-//     return [latitude, longitude];
-// };
-
 function getState(zipString) {
 
     /* Ensure param is a string to prevent unpredictable parsing results */
@@ -235,14 +226,10 @@ function getState(zipString) {
 const getCurrentWeather = async (latitude, longitude) => {
         const response = await fetch(`https://api.weather.gov/points/${latitude},${longitude}`);
         const data = await response.json();
-        // let city = await fetch(data["relativeLocation"]["properties"]["city"]);
         let forecastUrl = await fetch(data["properties"]["forecastHourly"]);
         let forecastProperties = await forecastUrl.json();
         let currentWeather = await forecastProperties["properties"]["periods"][0];
-        // let forecastHourly = await forecastProperties["properties"]["periods"];
-        // for (period of forecastHourly) {
-        //     twelveHourForecast.push(period);
-        // }
+       
         document.getElementById("temp").innerHTML = "";
         document.getElementById("windDirection").innerHTML = "";
         document.getElementById("windSpeed").innerHTML = "";
@@ -338,7 +325,3 @@ const getWeatherForecast = async (latitude, longitude) => {
 };
 
 document.getElementById("getWeather").addEventListener("click", getAllWeather);
-
-// document.getElementById("getWeather").addEventListener("click", async () => {
-//     await getAllWeather();
-// });
